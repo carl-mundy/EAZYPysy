@@ -380,5 +380,5 @@ class eazy(object):
         ax.set_ylim(0, xy_max), ax.set_xlim(0, xy_max)
         ax.set_xlabel("spec-z"), ax.set_ylabel("photo-z")
 
-        plt.show()
+        plt.show() 
         return fig, ax
