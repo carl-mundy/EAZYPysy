@@ -14,7 +14,6 @@ Current and planned functionality is described below.
 
 ## Initialising
 To access basic functionality, initialise a new `eazy` object by providing the output directory and output file prefix of the files EAZY dumps after running. An example is shown below:
-
 ```python
 import eazypysy as ez
 
@@ -22,6 +21,17 @@ outpath = "~/path/to/output/files/"
 outpref = "mysurvey.output.prefix"
 
 mysurvey = ez.eazy(outpath, outprefix)
+```
+
+With this, the data contained in the .zout file can be accessed via `mysurvey.zout` which is an astropy.table Table object. For example, the reccommended photometric redshift can be accessed as `mysurvey.zout['z_peak']`. The following calls can be made:
+```python
+mysurvey.params           # Dictionary containing .params file keywords and calues
+mysurvey.apply_prior      # True if prior has been applied, False otherwise
+mysurvey.zgrid            # The redshift grid used by EAZY
+mysurvey.NZ               # The number of redshift steps
+mysurvey.NOBJ             # The number of objects used
+mysurvey.NFILT            # Number of filters given to EAZY
+mysurvey.NTEMP            # Number of templates in the fitting set
 ```
 
 ## Computing the P(Z)
