@@ -8,7 +8,7 @@ Current and planned functionality is described below.
 - [x] Support output with and without luminosity prior
 - [x] Calculate photometric zeropoints automatically
 - [x] Compute and retrieve the full PDF of an object
-- [ ] Plot photometric vs. spectroscopic comparison
+- [x] Plot photometric vs. spectroscopic comparison
 - [ ] Calculate useful statistics for photo-z/spec-z comparison
 - [ ] Communicate with EAZY's ascii file output
 
@@ -32,6 +32,7 @@ mysurvey.NZ               # The number of redshift steps
 mysurvey.NOBJ             # The number of objects used
 mysurvey.NFILT            # Number of filters given to EAZY
 mysurvey.NTEMP            # Number of templates in the fitting set
+mysurvey.zout             # astropy.table Table with the .zout file contents
 ```
 
 ## Computing the P(Z)
@@ -42,6 +43,12 @@ pdfs_one = mysurvey.getPDF(idx)
 pdfs_many = mysurvey.getPDF(np.arange(2000))
 ```
 The index `idx` can either be an integer, list or numpy array. In any case, an array will be returned with the resulting normalised PDFs inside it with shape `(len(idx),len(zgrid))`.
+
+## Spec-z/Photo-z Comparison
+If `matplotlib` is installed, one can plot a simple spectroscopic/photometric comparison plot. The default best-fit indicator is the `z_peak` redshift in the .zout file.
+```python
+fig, ax = mysurvey.plotComparison()
+```
 
 ## Calculating Photometric Zeropoints
 It is often very useful to apply small corrections to the photometry in your catalogue in order to undo systematic offsets between photometric bands, and to better match the template set you are using. These zeropoint offsets can be calculated easily using EASYPysy in the following way.
