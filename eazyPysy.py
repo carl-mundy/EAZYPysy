@@ -362,3 +362,23 @@ class eazy(object):
             plt.show()
 
         return True
+
+    def plotComparison(self, photoz = "z_peak", show = True):
+
+        fig, ax = plt.subplots(1, 1, figsize=(5.5, 5))
+
+        spec_z = self.zout["z_spec"]
+        photo_z = self.zout[photoz]
+
+        xy_max = np.max([spec_z.max(), photo_z.max()]) + 0.1
+        prng = np.arange(0, xy_max+0.05, 0.05)
+
+        ax.plot(spec_z, photo_z, 'ow', ms=5, alpha=0.8, mec='k', mew=1)
+        ax.plot(prng, prng, '--r', lw=2, alpha=0.7)
+        ax.plot(prng, prng + (1.+prng)*0.15, '-.r', lw=1, alpha=0.7)
+        ax.plot(prng, prng - (1.+prng)*0.15, '-.r', lw=1, alpha=0.7)
+        ax.set_ylim(0, xy_max), ax.set_xlim(0, xy_max)
+        ax.set_xlabel("spec-z"), ax.set_ylabel("photo-z")
+
+        plt.show()
+        return fig, ax

@@ -2,3 +2,4 @@
 *.stderr
 *.stdout
 .idea*
+test.py

@@ -13,3 +13,5 @@ initialzpfile = 'uds.dr8.zeropoint'
 eazy = ez.eazy(outpath, outprefix)
 # eazy.calcZeropoints(eazy_path, inpath, inpref, tol = 0.0075,
 #                     verbose=True, plot=False, exclude=[0])
+
+eazy.plotComparison()
