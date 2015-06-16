@@ -280,11 +280,7 @@ class eazy(object):
                 for i, med in enumerate(zeropoints):
                     f.write('{0}    {1:.4f} {2}'.format(filt_nums[i], med, '\n'))
 
-            # Run eazy now
-            command = ("cd {directory}; {0} -p {1} -t {2} -z {3}".format(eazypath, inpref+".param", inpref+".translate",
-                                                                    inpref+".zeropoint",
-                                                                         directory=indir))
-            output = call(command, stdout = open('ezpysy.stdout','w'), stderr = open('ezpysy.stderr','w'), shell = True)
+            output = self.runEAZY(eazypath, indir, inpref)
 
             if output is not 0:
                 if verbose: print '-----> EAZY output error. Code = {0}'.format(output)
@@ -343,6 +339,7 @@ class eazy(object):
                 file.write('{0}    {1:.4f} {2}'.format(filt_nums[i], med, '\n'))
         print 'Written to file: {0}'.format(newzppath)
 
+
         if plot is True:
             fig, ax = plt.subplots(1,2, figsize=(10,4))
 
@@ -373,10 +370,6 @@ class eazy(object):
         xy_max = np.max([spec_z.max(), photo_z.max()]) + 0.1
         prng = np.arange(0, xy_max+0.05, 0.05)
 
-        ax.plot(spec_z, photo_z, 'ow', ms=5, alpha=0.8, mec='k', mew=1)
-        ax.plot(prng, prng, '--r', lw=2, alpha=0.7)
-        ax.plot(prng, prng + (1.+prng)*0.15, '-.r', lw=1, alpha=0.7)
-        ax.plot(prng, prng - (1.+prng)*0.15, '-.r', lw=1, alpha=0.7)
         ax.set_ylim(0, xy_max), ax.set_xlim(0, xy_max)
         ax.set_xlabel("spec-z"), ax.set_ylabel("photo-z")
 
