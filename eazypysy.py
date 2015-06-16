@@ -355,10 +355,26 @@ class eazy(object):
             ax[1].plot([0, iterations], [1., 1.], '-k', lw=2, alpha=0.7)
             ax[1].set_xlim(0, iterations-2)
 
-            plt.tight_layout()
             plt.show()
 
+        # Run eazy one final time now that zeropoints are written
+        newpvals = {"FIX_ZSPEC": 0,
+                    }
+        self.writeParams(indir+inpref+".param", newvals=newpvals, clobber=clobber, verbose=verbose)
+        output = self.runEAZY(eazypath, indir, inpref)
+
+        self.__init__(self.path, self.prefix)
+
         return True
+
+    def runEAZY(self, eazypath, inpath, inpref):
+
+        command = ("cd {directory}; {0} -p {1} -t {2} -z {3}".format(eazypath, inpref+".param", inpref+".translate",
+                                                                inpref+".zeropoint",
+                                                                directory=inpath))
+        output = call(command, stdout = open('ezpysy.stdout','w'), stderr = open('ezpysy.stderr','w'), shell = True)
+
+        return output
 
     def plotComparison(self, photoz = "z_peak", show = True):
 
@@ -370,8 +386,13 @@ class eazy(object):
         xy_max = np.max([spec_z.max(), photo_z.max()]) + 0.1
         prng = np.arange(0, xy_max+0.05, 0.05)
 
+        ax.plot(spec_z, photo_z, 'ok', ms=4, alpha=0.6)
+        ax.plot(prng, prng, '--r', lw=3, alpha=0.7)
+        ax.plot(prng, prng + (1.+prng)*0.15, '-.r', lw=2, alpha=0.7)
+        ax.plot(prng, prng - (1.+prng)*0.15, '-.r', lw=2, alpha=0.7)
         ax.set_ylim(0, xy_max), ax.set_xlim(0, xy_max)
         ax.set_xlabel("spec-z"), ax.set_ylabel("photo-z")
 
         plt.show() 
         return fig, ax
+
