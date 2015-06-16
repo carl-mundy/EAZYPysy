@@ -16,6 +16,13 @@ class eazy(object):
             self.path = self.path + "/"
 
         self.params, self.apply_prior = self.getParams(self.path, self.prefix)
+        self.zout = self.getOut(self.path, self.prefix)
+        tfd = self.getTempfilt(self.path, self.prefix)
+        self.NOBJ = tfd['NOBJ']
+        self.NTEMP = tfd['NTEMP']
+        self.NZ = tfd['NZ']
+        self.NFILT = tfd['NFILT']
+        self.zgrid = tfd['zgrid']
 
     def getParams(self, path, prefix, verbose = True):
 
@@ -191,7 +198,11 @@ class eazy(object):
         if verbose: print ".zbin file found and read in correctly!"
         return z_best
 
-    def getPDF(self, idx, path, prefix, verbose = True):
+    def getPDF(self, idx, path = False, prefix = False, verbose = True):
+
+
+        if path is False:   path = self.path
+        if prefix is False: prefix = self.prefix
 
         if not isinstance(idx, (list, np.ndarray)):
             idx = [idx]
@@ -206,7 +217,7 @@ class eazy(object):
             g_pdf = np.exp(-0.5*chi2[i,:])
             if apply_prior is True:
                 g_pdf *= priorzk[kidx[i],:]
-
+            # Normalise them!
             out.append(g_pdf)
 
         if verbose: print 'PDFs returned successfully!'
@@ -237,14 +248,15 @@ class eazy(object):
         if verbose: print ".params file written successfully!"
         return True
 
-    def calcZeropoints(self, eazypath, indir, inpref, initialzpfile, tol = 1e-2, clobber = True,
+    def calcZeropoints(self, eazypath, indir, inpref, tol = 1e-2, clobber = True,
                        maxiters = 100, exclude = False, verbose = True, plot = False):
 
-        zp_table = Table.read(indir+initialzpfile, format="ascii.no_header")
+        zp_table = Table.read(indir+inpref+".zeropoint", format="ascii.no_header")
 
         newpvals = {"GET_ZP_OFFSETS": 1,
-                        "FIX_ZSPEC": 1,
-                        }
+                    "FIX_ZSPEC": 1,
+                    "BINARY_OUTPUT":1,
+                    }
         self.writeParams(indir+inpref+".param", newvals=newpvals, clobber=clobber, verbose=verbose)
 
         zp_arr, diff_arr = [], []

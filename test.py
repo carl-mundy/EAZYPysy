@@ -1,5 +1,4 @@
 import eazyPysy as ez
-import numpy as np
 
 eazy_path = "/Users/CJM2013/Desktop/eazy_test/src/eazy"
 
@@ -12,5 +11,5 @@ initialzpfile = 'uds.dr8.zeropoint'
 
 
 eazy = ez.eazy(outpath, outprefix)
-eazy.calcZeropoints(eazy_path, inpath, inpref, initialzpfile, tol = 0.0075,
-                    verbose=True, plot=False, exclude=[0])
+# eazy.calcZeropoints(eazy_path, inpath, inpref, tol = 0.0075,
+#                     verbose=True, plot=False, exclude=[0])
