@@ -9,7 +9,7 @@ Current and planned functionality is described below.
 - [x] Calculate photometric zeropoints automatically
 - [x] Compute and retrieve the full PDF of an object
 - [x] Plot photometric vs. spectroscopic comparison
-- [ ] Calculate useful statistics for photo-z/spec-z comparison
+- [x] Calculate useful statistics for photo-z/spec-z comparison
 - [ ] Communicate with EAZY's ascii file output
 
 ## Initialising
@@ -49,6 +49,23 @@ If `matplotlib` is installed, one can plot a simple spectroscopic/photometric co
 ```python
 fig, ax = mysurvey.plotComparison()
 ```
+
+## Calculating Stats
+There are many measures of photometric redshift 'quality'. This functions works out some of the most used and returns them, with an option to print them out to the terminal.
+```python
+statDict = mysurvey.getCompStats( photoz = "z_peak", verbose = True )
+```
+This will output 
+```
+###################################
+NMAD: 			0.043
+nu 1: 			4.4%
+nu 2: 			4.6%
+mean offset: 		-0.013
+median offset: 		-0.010
+###################################
+```
+into the terminal. This shows the normalised median absolute deviation (NMAD; Capak et al. 2007), outlier fraction with |z_p - z_s|/(1+z_s) > 0.15, outlier fraction with |z_p - z_s|/(1+z_s) > 3*NMAD, mean offset in (z_p - z_s)/(1+z_s) and median offset in (z_p - z_s)/(1+z_s). It will also return a dictionary with these values in it.
 
 ## Calculating Photometric Zeropoints
 It is often very useful to apply small corrections to the photometry in your catalogue in order to undo systematic offsets between photometric bands, and to better match the template set you are using. These zeropoint offsets can be calculated easily using EASYPysy in the following way.
