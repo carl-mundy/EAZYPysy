@@ -1,5 +1,6 @@
+# Exclusions for github commits
 *.pyc
 *.stderr
 *.stdout
 .idea*
-test.py
+./test.py
