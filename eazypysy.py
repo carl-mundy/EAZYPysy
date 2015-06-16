@@ -396,3 +396,33 @@ class eazy(object):
         plt.show() 
         return fig, ax
 
+    def getCompStats(self, photoz = "z_peak", verbose = True):
+
+        specz = self.zout["z_spec"]
+        photoz = self.zout[photoz]
+
+        dz = (photoz - specz)
+        diff = (dz / (1.+specz))
+
+        nmad = 1.4826 * np.median( np.abs( dz - np.median(dz) ) )
+        mean_offset = np.mean(diff)
+        median_offset = np.median(diff)
+
+        outlier1 = ((np.abs(diff) > 0.15).sum(dtype = float) / self.NOBJ)
+        outlier2 = ((np.abs(diff) > 3.*nmad).sum(dtype = float) / self.NOBJ)
+
+        print nmad, outlier1, outlier2, mean_offset, median_offset
+
+        if verbose:
+            print "#"*35
+            print "NMAD: \t\t\t{0:1.3f}".format(nmad)
+            print "nu 1: \t\t\t{0:1.1f}%".format(outlier1*100.)
+            print "nu 2: \t\t\t{0:1.1f}%".format(outlier2*100.)
+            print "mean offset: \t\t{0:1.3f}".format(mean_offset)
+            print "median offset: \t\t{0:1.3f}".format(median_offset)
+            print "#"*35
+
+        keys = ["nmad", "nu1", "nu2", "mean_offset", "median_offset"]
+        values = [nmad, outlier1, outlier2, mean_offset, median_offset]
+
+        return dict(zip(keys, values))
