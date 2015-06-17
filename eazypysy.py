@@ -7,6 +7,12 @@ import matplotlib.pyplot as plt
 class eazy(object):
 
     def __init__(self, OUTPATH, OUTPREFIX):
+        """Initialise the eazy object.
+
+        Arguments:
+        OUTPATH -- path to directory containing EAZY output files
+        OUTPREFIX -- prefix string of the .param, .translate and .zeropoint files
+        """
 
         self.path = OUTPATH
         self.prefix = OUTPREFIX
@@ -25,6 +31,13 @@ class eazy(object):
         self.zgrid = tfd['zgrid']
 
     def getParams(self, path, prefix, verbose = True):
+        """Get the contents of the .param EAZY output file and return as a dictionary object.
+
+        Arguments:
+        path -- path to directory containing EAZY output files
+        prefix -- prefix string of the .param, .translate and .zeropoint files
+        verbose -- defines whether output is written to the terminal
+        """
 
         fpath = path + prefix + ".param"
 
@@ -43,9 +56,12 @@ class eazy(object):
         return params, apply_prior
 
     def getCache(self, path, prefix, verbose = True):
-        """
-        Open the EAZY cache file that contains various items such as the redshift grid
-        and the catalogue fluxes.
+        """Return the contents of the EAZY cache file in a dictionary
+
+        Arguments:
+        path -- path to directory containing EAZY output files
+        prefix -- prefix string of the .param, .translate and .zeropoint files
+        verbose -- defines whether output is written to the terminal
         """
 
         fpath = path + prefix + "_cache"
@@ -71,8 +87,12 @@ class eazy(object):
         return dict(zip(keys, values))
 
     def getOut(self, path, prefix, verbose = True):
-        """
-        Open the .zout file from EAZY and read in the contents as an astropy Table object.
+        """Open the ascii .zout file and return as an astropy.table Table object.
+
+        Arguments:
+        path -- path to directory containing EAZY output files
+        prefix -- prefix string of the .param, .translate and .zeropoint files
+        verbose -- defines whether output is written to the terminal
         """
         fpath = path + prefix + ".zout"
 
@@ -89,6 +109,13 @@ class eazy(object):
             return False
 
     def getCoeff(self, path, prefix, verbose = True):
+        """Open the .coeff EAZY output file and return contents as a dictionary object
+
+        Arguments:
+        path -- path to directory containing EAZY output files
+        prefix -- prefix string of the .param, .translate and .zeropoint files
+        verbose -- defines whether output is written to the terminal
+        """
 
         fpath = path + prefix + ".coeff"
         # print 'get coeff path', fpath
@@ -111,6 +138,13 @@ class eazy(object):
         return dict(zip(keys, values))
 
     def getTempfilt(self, path, prefix, verbose = True):
+        """Open the .tempfilt EAZY output file and return contents as a dictionary object
+
+        Arguments:
+        path -- path to directory containing EAZY output files
+        prefix -- prefix string of the .param, .translate and .zeropoint files
+        verbose -- defines whether output is written to the terminal
+        """
 
         fpath = path + prefix + '.tempfilt'
 
@@ -135,6 +169,13 @@ class eazy(object):
         return dict(zip(keys, values))
 
     def getPz(self, path, prefix, verbose = True):
+        """Open the .pz EAZY output file and return contents as a dictionary object
+
+        Arguments:
+        path -- path to directory containing EAZY output files
+        prefix -- prefix string of the .param, .translate and .zeropoint files
+        verbose -- defines whether output is written to the terminal
+        """
 
         fpath = path + prefix + ".pz"
 
@@ -168,6 +209,13 @@ class eazy(object):
         return dict(zip(keys, values))
 
     def getBin(self, path, prefix, verbose = True):
+        """Open the .zbin EAZY output file and return contents as a dictionary object
+
+        Arguments:
+        path -- path to directory containing EAZY output files
+        prefix -- prefix string of the .param, .translate and .zeropoint files
+        verbose -- defines whether output is written to the terminal
+        """
 
         fpath = path + prefix + ".zbin"
 
@@ -199,7 +247,14 @@ class eazy(object):
         return z_best
 
     def getPDF(self, idx, path = False, prefix = False, verbose = True):
+        """Compute the normalised PDF for an object in the output
 
+        Arguments:
+        idx -- zero indexed position of object in the input catalogue
+        path -- path to directory containing EAZY output files
+        prefix -- prefix string of the .param, .translate and .zeropoint files
+        verbose -- defines whether output is written to the terminal
+        """
 
         if path is False:   path = self.path
         if prefix is False: prefix = self.prefix
@@ -224,6 +279,13 @@ class eazy(object):
         return np.array(out)
 
     def writeParams(self, outpath = False, newvals = False, clobber = False, verbose = True):
+        """Write a new .params file, overwritten with new key values
+
+        Arguments:
+        outpath -- file you wish to create and overwrite
+        newvals -- dictionary of values to change
+        verbose -- defines whether output is written to the terminal
+        """
 
         if newvals is not False and type(newvals) is not dict:
             if verbose: print "New parameters not in dictionary format - please check!"
@@ -250,6 +312,19 @@ class eazy(object):
 
     def calcZeropoints(self, eazypath, indir, inpref, tol = 1e-2, clobber = True,
                        maxiters = 100, exclude = False, verbose = True, plot = False):
+        """Calculate the photometric zeropoints for a spectroscopic sample
+
+        Arguments:
+        eazypath -- absolute path to the eazy program file, e.g. "~/eazyfiles/src/eazy"
+        indir -- path to directory containing the EAZY input files
+        inpref -- prefix of the input files in indir
+        tol -- tolerance for photometric zeropoint calculation, e.g tol = 0.01 means to within 1%
+        clobber -- whether you wish to overwrite files
+        maxiters -- if tol is set too low, it will continue indefinitely. Set limit here.
+        exclude -- a zero indexed array of filters to keep constant/'anchor'
+        verbose -- True if you want terminal output, False otherwise
+        plot -- True if you want to show a plot of the process, False otherwise
+        """
 
         zp_table = Table.read(indir+inpref+".zeropoint", format="ascii.no_header")
 
@@ -307,11 +382,6 @@ class eazy(object):
 
             diff_arr.append(corrected_ratios)
 
-            # print '1', corrected_ratios
-            # if exclude is not False and isinstance(exclude, (list, np.ndarray)):
-            #     corrected_ratios[exclude] = 1.000
-            # print '2', corrected_ratios
-
             zeropoints = medians
 
             if verbose:
@@ -338,7 +408,6 @@ class eazy(object):
             for i, med in enumerate(zeropoints):
                 file.write('{0}    {1:.4f} {2}'.format(filt_nums[i], med, '\n'))
         print 'Written to file: {0}'.format(newzppath)
-
 
         if plot is True:
             fig, ax = plt.subplots(1,2, figsize=(10,4))
@@ -368,6 +437,13 @@ class eazy(object):
         return True
 
     def runEAZY(self, eazypath, inpath, inpref):
+        """Run EAZY and collect the output.
+
+        Arguments:
+        eazypath -- Absolute or relative path to the eazy source file
+        inpath -- path to directory containing input files
+        inpref -- input file prefix
+        """
 
         command = ("cd {directory}; {0} -p {1} -t {2} -z {3}".format(eazypath, inpref+".param", inpref+".translate",
                                                                 inpref+".zeropoint",
@@ -377,6 +453,12 @@ class eazy(object):
         return output
 
     def plotComparison(self, photoz = "z_peak", show = True):
+        """Plot a comparison between photometric and spectroscopic redshifts
+
+        Arguments:
+        photoz -- which redshift estimator to use in the EAZY output. Default is z_peak.
+        show -- True if you want a plot shown, False if not.
+        """
 
         fig, ax = plt.subplots(1, 1, figsize=(5.5, 5))
 
@@ -393,10 +475,18 @@ class eazy(object):
         ax.set_ylim(0, xy_max), ax.set_xlim(0, xy_max)
         ax.set_xlabel("spec-z"), ax.set_ylabel("photo-z")
 
-        plt.show() 
+        if show:
+            plt.show()
+
         return fig, ax
 
     def getCompStats(self, photoz = "z_peak", verbose = True):
+        """Calculate some useful statistics for the photo-z/spec-z comparison.
+
+        Arguments:
+        photoz -- which redshift estimator to use in the EAZY output. Default is z_peak.
+        verbose -- terminal output if True, False otherwise.
+        """
 
         specz = self.zout["z_spec"]
         photoz = self.zout[photoz]
