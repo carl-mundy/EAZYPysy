@@ -3,6 +3,7 @@ import os, shutil, sys
 from astropy.table import Table
 from subprocess import call
 import matplotlib.pyplot as plt
+from scipy.integrate import simps
 
 class eazy(object):
 
@@ -29,6 +30,8 @@ class eazy(object):
         self.NZ = tfd['NZ']
         self.NFILT = tfd['NFILT']
         self.zgrid = tfd['zgrid']
+
+        self.z_best = self.getBin(self.path, self.prefix)
 
     def getParams(self, path, prefix, verbose = True):
         """Get the contents of the .param EAZY output file and return as a dictionary object.
@@ -189,7 +192,7 @@ class eazy(object):
 
             chi2 = np.fromfile(f, count=NZ*NOBJ, dtype=np.double).reshape((NOBJ,NZ))
 
-            params, apply_prior = self.getParams(fpath, prefix)
+            params, apply_prior = self.getParams(path, prefix)
 
             keys = ['NZ','NOBJ','chi2','apply_prior']
             values = [NZ, NOBJ, chi2, apply_prior]
@@ -198,12 +201,13 @@ class eazy(object):
                 s = np.fromfile(f, count=1, dtype=np.int32)
                 NK = s[0]
                 kbins = np.fromfile(f, count=NK, dtype=np.double)
-                priorzk = np.fromfile(f, count=NZ*NK, dtype=np.double).reshape((NZ,NK))
+                priorzk = np.fromfile(f, count=NZ*NK, dtype=np.double).reshape((NK,NZ))
                 kidx = np.fromfile(f, count=NOBJ, dtype=np.int32)
-                kidx[ np.logical_and(self.kidx < 0, self.kidx > NK-1) ] = -99
+                kidx[ np.logical_and(kidx < 0, kidx > NK-1) ] = -99
+                self.kidx = kidx
 
-                keys.append(['NK','kbins','priorzk','kidx'])
-                values.append([NK, kbins, priorzk, kidx])
+                keys.extend(['NK','kbins','priorzk','kidx'])
+                values.extend([NK, kbins, priorzk, kidx])
 
         if verbose: print ".pz file found and read in correctly!"
         return dict(zip(keys, values))
@@ -263,16 +267,21 @@ class eazy(object):
             idx = [idx]
 
         params, apply_prior = self.getParams(path, prefix)
+
         pz_d = self.getPz(path, prefix)
         chi2, priorzk, kidx = pz_d['chi2'], pz_d['priorzk'], pz_d['kidx']
+
+        print priorzk.shape
 
         out = []
 
         for i in idx:
             g_pdf = np.exp(-0.5*chi2[i,:])
-            if apply_prior is True:
+            if apply_prior is True and kidx[i] < priorzk.shape[0] and kidx[i] >= 0:
                 g_pdf *= priorzk[kidx[i],:]
             # Normalise them!
+            g_pdf /= simps(g_pdf, self.zgrid)
+            # Save them for output
             out.append(g_pdf)
 
         if verbose: print 'PDFs returned successfully!'
@@ -310,6 +319,22 @@ class eazy(object):
         if verbose: print ".params file written successfully!"
         return True
 
+    def getZeropoints (self, indir, inpref, verbose = True):
+        """Grab the current zeropoints from the .zeropoints file
+
+        Arguments:
+        indir -- path to directory containing the EAZY input files
+        inpref -- prefix of the input files in indir
+        """
+
+        if os.path.isfile(indir+inpref+'.zeropoint'):
+            zeropoints = np.genfromtxt(indir+inpref+'.zeropoint', usecols=1, dtype=np.float32)
+            if verbose: print "zeropoints captured successfully!"
+            return zeropoints
+        else:
+            if verbose: print ".zeropoint file not found - please check!"
+            return False
+
     def calcZeropoints(self, eazypath, indir, inpref, tol = 1e-2, clobber = True,
                        maxiters = 100, exclude = False, verbose = True, plot = False):
         """Calculate the photometric zeropoints for a spectroscopic sample
@@ -336,7 +361,11 @@ class eazy(object):
 
         zp_arr, diff_arr = [], []
 
-        zeropoints = np.ones_like(zp_table['col2'])
+        # zeropoints = np.ones_like(zp_table['col2'])
+        zeropoints = self.getZeropoints(indir, inpref, verbose)
+        print zeropoints
+        if (zeropoints is False) or (len(zeropoints) == 0):
+            zeropoints = np.ones_like(zp_table['col2'])
         any_above_tol = True
         iterations = 1
         filt_nums = zp_table['col1'].data
@@ -377,8 +406,11 @@ class eazy(object):
                 medians[i] = np.median(ratio)
                 if exclude is not False and isinstance(exclude, (list, np.ndarray)):
                     if i in exclude:
-                        medians[i] = 1.000
+                        medians[i] = 1.
                 corrected_ratios[i] = np.median((fit_seds[cut,i]/(zeropoints[i]*fnu[cut,i])))
+                if exclude is not False and isinstance(exclude, (list, np.ndarray)):
+                    if i in exclude:
+                        corrected_ratios[i] = 1.
 
             diff_arr.append(corrected_ratios)
 
@@ -497,15 +529,19 @@ class eazy(object):
         nmad = 1.4826 * np.median( np.abs( dz - np.median(dz) ) )
         mean_offset = np.mean(diff)
         median_offset = np.median(diff)
+        dz1s = np.mean(np.abs(diff))
 
         outlier1 = ((np.abs(diff) > 0.15).sum(dtype = float) / self.NOBJ)
         outlier2 = ((np.abs(diff) > 3.*nmad).sum(dtype = float) / self.NOBJ)
 
-        print nmad, outlier1, outlier2, mean_offset, median_offset
+        # print np.mean(np.abs(diff))
+
+        # print nmad, outlier1, outlier2, mean_offset, median_offset
 
         if verbose:
             print "#"*35
             print "NMAD: \t\t\t{0:1.3f}".format(nmad)
+            print "dz/1+z:\t\t\t{0:1.3f}".format(dz1s)
             print "nu 1: \t\t\t{0:1.1f}%".format(outlier1*100.)
             print "nu 2: \t\t\t{0:1.1f}%".format(outlier2*100.)
             print "mean offset: \t\t{0:1.3f}".format(mean_offset)
